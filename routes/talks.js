@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Talk = require('../models/Talk');
+const Reply = require('../models/Reply');
 
 //GET BACK ALL TH POSTS
 router.get('/', async (req,res) => {
@@ -11,7 +12,6 @@ router.get('/', async (req,res) => {
         res.json({ message: err });
     }
 });
-
 // router.get('/',(req,res) => {
 //     res.send('we are on posts');
 // });
@@ -19,6 +19,52 @@ router.get('/', async (req,res) => {
 // router.get('/specific',(req,res) => {
 //     res.send('Specific post');
 // });
+
+//降序
+router.get('/down', async (req,res) => {
+    try{
+        const talks = await Talk.find();
+        talks.sort(function(a, b) {
+            return b.date < a.date ? -1 : 1
+          })
+        res.json(talks);
+    }catch(err){
+        res.json({ message: err });
+    }
+});
+
+//升序
+router.get('/up', async (req,res) => {
+    try{
+        const talks = await Talk.find();
+        talks.sort(function(a, b) {
+            return b.date < a.date ? 1 : -1
+          })
+        res.json(talks);
+    }catch(err){
+        res.json({ message: err });
+    }
+});
+
+//模糊查询
+router.post('/search', async (req,res) => {
+    console.log(req.body.something);
+    try{
+        // const sTalks =await Talk.find({title: {$regex:req.body.something}});
+        const sTalks =await Talk.find(
+            {
+                $or: [
+                    {title: {$regex:req.body.something}}, 
+                    {description: {$regex:req.body.something}}
+                ]
+             }
+        );
+        res.json(sTalks);
+    }catch(err){
+        res.json({ message: err});
+    }
+});
+
 
 //SUBMITS A POST
 router.post('/', async (req,res) => {
@@ -91,6 +137,7 @@ router.delete('/:postId', async (req,res) => {
     // console.log(req.params.postId);
     try{
         const removedPost =await Talk.remove({ _id: req.params.postId });
+        const removedReply =await Reply.remove({ answeredId: req.params.postId });
         res.json(removedPost);
     }catch(err){
         res.json({ message: err});

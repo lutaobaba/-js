@@ -65,6 +65,17 @@ router.post('/', async (req,res) => {
 //         })
 // });
 
+router.post('/thisReply', async (req,res) => {
+    let {answeredId}=req.body
+    try{
+        const replies =await Reply.find({answeredId});
+        res.json(replies);
+    }catch(err){
+        res.json({ message: err});
+    }
+});
+
+
 //SPECIFIC POST
 router.get('/:postId', async (req,res) => {
     // console.log(req.params.postId);
